@@ -1,14 +1,24 @@
 """
 Authors: Blanche Le Boniec & Jorik van Nielen
 """
+import random
 
+def random_permutation(x,n):
+    m=n
+    while(m>=2):
+        i=random.randint(1,m)
+        temp=x[i]
+        x[i]=x[m]
+        x[m]=temp
+        m=m-1
+    return x
 
 
 # load in the files and make adjacency lists
 languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
 adjacency_matrices = {}
 for lang in languages:
-    graph_file = open('dependency_networks/' + lang + "_syntactic_dependency_network.txt")
+    graph_file = open('dependency_networks/' + lang + "_syntactic_dependency_network.txt",encoding='UTF8')
     count = 0
     adjacency_matrices[lang] = {}
     adjacency_matrix = adjacency_matrices[lang]
