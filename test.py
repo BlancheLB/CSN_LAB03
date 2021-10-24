@@ -2,7 +2,7 @@ import random
 import math
 
 languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
-
+ 
 
 sequences_matrices=[]
 nodes=[]
@@ -65,7 +65,15 @@ def switchM_all(mat_languages):
 
 
 
-
+def switching_model(dict,Q,E):
+    n=int(Q*E);
+    for i in range(n):
+        #index of two random nodes to exchange edge
+        index1=random.randint(1,len(mat)-1)
+        index2=random.randint(1,len(mat)-1)
+        
+        mat[index1][1],mat[index2][1]=mat[index2][1],mat[index1][1]
+    return mat
 
 
 
@@ -93,3 +101,4 @@ def switching_model(mat,Q,E):
         print("mat index 2 apres ",mat[index2])
 
 switching_model(sequences_matrices[5][1],1,1)
+print(sequences_matrices[5])

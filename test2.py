@@ -1,13 +1,11 @@
-"""
-Authors: Blanche Le Boniec & Jorik van Nielen
-"""
-
-import networkx as nx
-from networkx.algorithms.centrality import closeness
+import random
+import math
+import pandas as pd
 import numpy as np
+import networkx as nx
+from networkx import *
 
 
-# load in the files and make adjacency lists
 languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
 adjacency_matrices = {}
 sequences_matrices=[]
@@ -34,7 +32,7 @@ def read_files():
                     print("warning: weird line - less than 2 words", line)
                     continue
                 nodes.append(words)
-                if  words[0]!=words[1]:
+                if  words[0]!=words[1] and count!=1:
                     if words[0] in adjacency_matrix.keys():
                         adjacency_matrix[words[0]].append(words[1])
                     else:
@@ -43,30 +41,32 @@ def read_files():
     #print(adjacency_matrices["English"])
          
 
- 
 
-def closeness_normal_graph(dict):
-    closeness_adjacency_matrices ={}
-    tab=[]
-    for lang in languages:
-        G = nx.Graph(dict[lang]) 
-        closeness_adjacency_matrices[lang]= nx.algorithms.centrality.closeness_centrality(G)
-    print(closeness_adjacency_matrices)
-    return closeness_adjacency_matrices,tab
+
+
+
 
 
 read_files()
 closeness_SM=[]
-#print(adjacency_matrices["English"])
-dict,arr=closeness_normal_graph(adjacency_matrices)
-np.savetxt('closeness_arr.csv', arr, delimiter=',')
-np.savetxt('closeness_dict.csv', dict, delimiter=',')
+#print(adjacency_matrices["English"].items())
+a=list(adjacency_matrices)
+print(a[5])
 
 
+g=adjacency_matrices["English"]
 
-
-
-
+G=nx.Graph(g)
+E=G.number_of_edges()
+print(E)
+Q=math.log(E)
+n=int((Q*E))
+print(list(G.edges_iter(0)))
+for n in G.nodes():
+    print(nx.algorithms.centrality.harmonic_centrality(G,G[n]))
+Z=nx.double_edge_swap(G,n,max_tries=100*n)
+print(G)
+print(Z)
 
 
 
