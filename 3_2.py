@@ -3,6 +3,8 @@ Authors: Blanche Le Boniec & Jorik van Nielen
 """
 import random
 import math
+import networkx as nx
+from networkx.algorithms.centrality import closeness
 
 # load in the files and make adjacency lists
 languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
@@ -36,8 +38,9 @@ def read_files():
                 else:
                     adjacency_matrix[words[0]] = [words[1]] 
         sequences_matrices.append([lang,nodes])   
+    print(adjacency_matrices["English"])
          
-    #print(adjacency_matrices["English"])
+
 
 
 def switching_model(mat,Q,E):
@@ -50,15 +53,33 @@ def switching_model(mat,Q,E):
         mat[index1][1],mat[index2][1]=mat[index2][1],mat[index1][1]
     return mat
         
-def switchM_all(mat_languages):
+def switchM_all(mat_languages,closseness):
     for i in range(len(mat_languages)):
         E=int(mat_languages[i][1][0][1])
         Q=math.log(E)
         switching_model(mat_languages[i][1],Q,E)
-    return mat_languages
+        closeness(mat_languages[i],closseness)
+    
+    return mat_languages,closseness
+
+
+def closseness(degree_sequence,closseness):
+     # calculate closeness centrality per edge
+    closeness_centrality_i = nx.algorithms.centrality.closeness_centrality(degree_sequence)
+    #print(closeness_centrality_i)
+    N = len(closeness_centrality_i)
+    closeness_centrality = 0
+    # calculate closeness centrality of the entire graph
+    for i in closeness_centrality_i.values():
+        closeness_centrality += i/N
+        closseness.append(closeness_centrality)
+    return closseness
 
 read_files()
-switchM_all(sequences_matrices)
+closeness_SM=[]
+print(adjacency_matrices["English"])
+switchM_all(sequences_matrices,closeness_SM)
+
 
 #switching_model(sequences_matrices[5][1],1,1)
 
