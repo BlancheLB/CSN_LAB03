@@ -102,8 +102,8 @@ print(closeness_centralities)
 print()
 by_degree_desc = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=True)]
 by_degree_asc = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=False)]
-print(graphs['Basque'].nodes)
-random_order = random.shuffle(graphs['Basque'].nodes)
+random_order = graphs['Basque'].nodes.copy()
+random.shuffle(random_order)
 
 closeness_SM=[]
 # dict,arr=closeness_normal_graph(adjacency_matrices)
