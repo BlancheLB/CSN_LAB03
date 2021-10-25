@@ -59,62 +59,85 @@ def closeness_normal_graph(dict):
 
 
 """
-Get the closeness centraility of a node
+Calculate the closeness centraility of a node
 If it has a neighbor that only has one edge, also returns the closeness
 centrality of that node
 """
 def node_closeness_centrality(graph, node):
     lengths = nx.algorithms.shortest_paths.generic.shortest_path_length(graph, source=node)
-    closeness_centralities = {node: (len(graph.nodes) - 1)/ (sum(lengths.values()))}
+    closeness_centralities = {node: (len(lengths))/ (sum(lengths.values()))}
+    if closeness_centralities[node] > 100:
+        print("high value detected:", closeness_centralities[node], lengths)
     # if node has neighbours that only have one edge, return their cs also
     for n in graph.neighbors(node):
-        # if only one edge, calculate at the end
         if len(list(graph.neighbors(n))) == 1:
             lengths_plus_1 = [l + 1 for l in lengths.values()]
-            closeness_centralities[n] = (len(graph.nodes) - 1)/ (sum(lengths_plus_1))
+            closeness_centralities[n] = (len(lengths) - 1)/ (sum(lengths_plus_1))
     return closeness_centralities
     # return nx.algorithms.centrality.closeness_centrality(graph, node)
 
-
-
-languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
-languages_to_use = languages[1:2]
-# load files
-adjacency_matrices, sequence_matrices = read_files(languages_to_use)
-# print(adjacency_matrices)
-# load into graphs
-graphs = {}
-for lang in languages_to_use:
-    graphs[lang] = nx.Graph(adjacency_matrices[lang])
-
-# get the closeness centralities per node
 """
-closeness_centralities = {l: {} for l in languages_to_use}
-for lang in languages_to_use:
-    c_s_lang = closeness_centralities[lang]
-    for n in graphs[lang].nodes:
-        if n not in c_s_lang.keys():
-            c_s_lang = c_s_lang | node_closeness_centrality(graphs[lang], n)
-print(closeness_centralities)
+Calculate the closeness centrality of the full graph
+Presenting a graph order is optional
+Giving what percentage of the nodes should be used for the calculation is optional
 """
+def graph_closeness_centrality(graph, node_order=None, fraction=1):
 
-# different orderings:
-print()
-by_degree_desc = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=True)]
-by_degree_asc = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=False)]
-random_order = graphs['Basque'].nodes.copy()
-random.shuffle(random_order)
+    # change order of nodes if requested
+    nodes = None
+    if node_order is None:
+        nodes = graph.nodes
+    elif node_order == "random":
+        nodes = graph.nodes.copy()
+        random.shuffle(nodes)
+    elif node_order == "degree_desc":
+        nodes = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=True)]
+    elif node_order == "degree_asc":
+        nodes = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=False)]
+    else:
+        print("unknown noder_order, defaulting to normal order")
+        node_order = graph.nodes
+    
+    # calculate for only a fraction of the nodes
+    if fraction < 1:
+        assert fraction > 0
+        nodes = list(nodes)[0:int(len(nodes)*fraction)]
 
-closeness_SM=[]
-# dict,arr=closeness_normal_graph(adjacency_matrices)
-# np.savetxt('closeness_arr.csv', arr, delimiter=',')
-# np.savetxt('closeness_dict.csv', dict, delimiter=',')
+    # calculate node closeness centrality for all selected nodes
+    c_s_graph = {}
+    for n in nodes:
+        if n not in c_s_graph.keys(): # because it might have already been calculated
+            c_s_graph = c_s_graph | node_closeness_centrality(graph, n)
+    # calculate graph closeness centrality
+    return sum(c_s_graph.values())/len(c_s_graph)
+
+
+def main():
+    languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
+    languages_to_use = languages[1:2]
+    # load files
+    adjacency_matrices, sequence_matrices = read_files(languages_to_use)
+
+    # load into graphs
+    graphs = {}
+    for lang in languages_to_use:
+        graphs[lang] = nx.Graph(adjacency_matrices[lang])
+
+    # get the closeness centralities per node
+    closeness_centralities = {l: {} for l in languages_to_use}
+    for lang in languages_to_use:
+        c_s_lang = graph_closeness_centrality(graphs[lang], node_order=None, fraction=0.1)
+    print(c_s_lang)
+
+
+    # closeness_SM=[]
+    # dict,arr=closeness_normal_graph(adjacency_matrices)
+    # np.savetxt('closeness_arr.csv', arr, delimiter=',')
+    # np.savetxt('closeness_dict.csv', dict, delimiter=',')
 
 
 
-
-
-
-
+if __name__ == "__main__":
+    main()
 
 
