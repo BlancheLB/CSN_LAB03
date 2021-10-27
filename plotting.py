@@ -28,6 +28,25 @@ def plot_percentage_and_sorting():
     plt.legend()
     plt.show()
 
+def plot_percetage_all():
+
+    with open('output/language_c_s_full.json', 'r') as f:
+        ccs = json.load(f)
+
+    fig, axs = plt.subplots(2, 2)
+    orderings = ['random', 'degree_asc', 'degree_desc', 'normal']
+    for j in [i for i in range(0,4)]:
+        with open('output/percentages_c_s' + orderings[j] + '.json','r') as f:
+            data = json.load(f)
+        plot = axs[j//2, j%2]
+        for key,val in data.items():
+            plot.plot([0.005 * k for k in range(1,12)], [ccs[key] - v for v in val.values()][0:11], label=key)
+        plot.set(xlabel='Percentage of the nodes processed', ylabel='Difference with real closeness centrality')
+        plot.set_title(orderings[j] + ' ordering')
+    fig.suptitle('Closeness centrality correctness for small measurements')
+    plt.legend()
+    plt.show()
+
 def plot_measurements_erdos():
     with open('./output/ptest_erdos.json','r') as f:
         data = json.load(f)
