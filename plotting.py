@@ -21,10 +21,10 @@ def plot_percentage_and_sorting():
         with open('output/percentages_c_s' + ordering + '.json','r') as f:
             data = json.load(f)
         plt.plot([0.05 * k for k in range(1,21)], data.values(), label=ordering + ' ordering')
-    plt.plot([0,1], [0.2638031185670359, 0.2638031185670359], label="correct result")
+    plt.plot([0,1], [0.3326981570252918, 0.3326981570252918], label="correct result")
     plt.xlabel('Percentage of the nodes processed')
     plt.ylabel('Graph closeness centrality')
-    plt.title('Closeness centrality over processing time,\n with different orderings (Basque)')
+    plt.title('Closeness centrality over processing time,\n with different orderings (English)')
     plt.legend()
     plt.show()
         

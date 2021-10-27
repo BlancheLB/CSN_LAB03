@@ -7,6 +7,7 @@ from networkx.algorithms.centrality import closeness
 import numpy as np
 import random
 import math
+from networkx.utils import py_random_state
 
 
 
@@ -36,12 +37,12 @@ def read_files(languages):
                     print("warning: weird line - less than 2 words", line)
                     continue
                 # nodes.append(words)
+                # avoid loops
                 if  words[0]!=words[1]:
                     if words[0] in adjacency_matrix.keys():
                         adjacency_matrix[words[0]].append(words[1])
                     else:
                         adjacency_matrix[words[0]] = [words[1]] 
-        # TODO: i removed this because i dont see the use
         # sequences_matrices.append([lang,nodes])   
     #print(adjacency_matrices["English"])
     return adjacency_matrices, sequences_matrices
@@ -67,7 +68,11 @@ centrality of that node
 """
 def node_closeness_centrality(graph, node):
     lengths = nx.algorithms.shortest_paths.generic.shortest_path_length(graph, source=node)
-    closeness_centralities = {node: (len(lengths))/ (sum(lengths.values()))}
+    dist_sum = sum(lengths.values())
+    # if not connected return 0
+    if dist_sum == 0:
+        return {node: 0}
+    closeness_centralities = {node: (len(lengths))/ dist_sum}
     if closeness_centralities[node] > 100:
         print("high value detected:", closeness_centralities[node], lengths)
     # if node has neighbours that only have one edge, return their cs also
@@ -147,7 +152,8 @@ def create_erdos_graph(nr_of_nodes: int, nr_of_edges: int):
     p = m/n
     
     # generate erdos-renyi graph
-    g = nx.generators.random_graphs.erdos_renyi_graph(n, p, directed=False)
+    g = nx.gnm_random_graph(n,m)
+    # g = nx.generators.random_graphs.erdos_renyi_graph(n, p, directed=False)
     return g
 
 """
@@ -157,8 +163,51 @@ def apply_switching_model(graph, Q:int=None):
     #calculate Q according to coupon collector's problem
     if Q == None:
         Q = math.log(graph.number_of_edges())
-    number_of_tries = graph.number_of_edges() * Q
+    number_of_tries = int(graph.number_of_edges() * Q)
     # switch edges randomly
-    nx.double_edge_swap(graph,number_of_tries,max_tries=number_of_tries)
+    double_edge_swap(graph,nswap=number_of_tries)
     return graph
 
+
+"""
+Perform edge swaps
+Modified version of https://networkx.org/documentation/stable/_modules/networkx/algorithms/swap.html
+"""
+@py_random_state(2)
+def double_edge_swap(G, nswap=1, seed=None):
+    if G.is_directed():
+        raise nx.NetworkXError("double_edge_swap() not defined for directed graphs.")
+    if len(G) < 4:
+        raise nx.NetworkXError("Graph has less than four nodes.")
+    # Instead of choosing uniformly at random from a generated edge list,
+    # this algorithm chooses nonuniformly from the set of nodes with
+    # probability weighted by degree.
+    n = 0
+    swapcount = 0
+    keys, degrees = zip(*G.degree())  # keys, degree
+    cdf = nx.utils.cumulative_distribution(degrees)  # cdf of degree
+    discrete_sequence = nx.utils.discrete_sequence
+    while swapcount < nswap:
+        #        if random.random() < 0.5: continue # trick to avoid periodicities?
+        # pick two random edges without creating edge list
+        # choose source node indices from discrete distribution
+        (ui, xi) = discrete_sequence(2, cdistribution=cdf, seed=seed)
+        if ui == xi:
+            swapcount += 1
+            continue  # same source, skip
+        u = keys[ui]  # convert index to label
+        x = keys[xi]
+        # choose target uniformly from neighbors
+        v = seed.choice(list(G[u]))
+        y = seed.choice(list(G[x]))
+        if v == y:
+            swapcount += 1
+            continue  # same target, skip
+        if (x not in G[u]) and (y not in G[v]):  # don't create parallel edges
+            G.add_edge(u, x)
+            G.add_edge(v, y)
+            G.remove_edge(u, v)
+            G.remove_edge(x, y)
+            swapcount += 1
+        n += 1
+    return G
