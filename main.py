@@ -149,18 +149,54 @@ def p_tests():
         
     print("💯 all done")
 
+def p_value():
+    #upload closeness centrality
+    with open('./output/ptest_erdos.json','r') as f:
+        dataErdos = json.load(f)
+    with open('./output/ptest_switched.json','r') as f:
+        dataSwitched = json.load(f)
+    with open('./output/language_c_s_full.json','r') as f:
+        dataC= json.load(f)
+    
+    #calculate p_value of erdos graphs
+    p_value_erdos =  {l: {}  for l in dataErdos.keys()}
+    for lang in dataErdos.keys():
+        num_success=0
+        for i in range(len(dataErdos[lang].values())):
+            if(dataC[lang]>= dataErdos[lang][str(i)]):
+                num_success+=1
+        p_value_erdos[lang]=(num_success/len(dataErdos[lang].values()))
+    with open('output/p_value_erdos.json', 'w') as f:
+        f.write(json.dumps(p_value_erdos))
 
+    #calculate p_value of switched graphs
+    p_value_switched =  {l: {}  for l in dataSwitched.keys()}
+    for lang in dataSwitched.keys():
+        num_success=0
+        for i in range(len(dataSwitched[lang].values())):
+            if(dataC[lang]>= dataSwitched[lang][str(i)]):
+                num_success+=1
+        p_value_switched[lang]=(num_success/len(dataSwitched[lang].values()))
+    with open('output/p_value_switched.json', 'w') as f:
+        f.write(json.dumps(p_value_switched))
+
+        
+    print(num_success)
+
+
+    
 
 def main():
     # calc_lang_c_s()
 
    # for ordering in ['random', 'degree_asc', 'degree_desc', None]:
        # c_t_after_percentage(ordering)
-    p_tests()
+    #p_tests()
     # closeness_SM=[]
     # dict,arr=closeness_normal_graph(adjacency_matrices)
     # np.savetxt('closeness_arr.csv', arr, delimiter=',')
     # np.savetxt('closeness_dict.csv', dict, delimiter=',')
+    p_value()
 
 
 
