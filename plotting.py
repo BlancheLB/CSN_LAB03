@@ -27,11 +27,30 @@ def plot_percentage_and_sorting():
     plt.title('Closeness centrality over processing time,\n with different orderings (English)')
     plt.legend()
     plt.show()
-        
+
+def plot_measurements_erdos():
+    with open('./output/ptest_erdos.json','r') as f:
+        data = json.load(f)
+    barWidth=0.25
+    groupBarWidth = barWidth * 20 + 2
+    count=0
+    languages = ['Basque', 'Greek',  'Turkish']
+    for i in range(len(data.keys())):
+        for j in range(20):
+            val = data[languages[i]][str(j)]
+            plt.bar(i*groupBarWidth + j*barWidth,val, width=barWidth)
+        #plt.xticks([i + 7 for i in range(len(data.keys()))],languages[i])
+    
+    plt.xlabel('Graph', fontweight='bold')
+    plt.xticks([i + 7 for i in range(len(data.keys()))],languages)
+    plt.ylabel('Closeness centrality')
+    plt.title('Closenness centrality with a Erdos graph per languages')
+    plt.show()
 
 def main():
     # plotcs_full()
-    plot_percentage_and_sorting()
+    #plot_percentage_and_sorting()
+    plot_measurements_erdos()
 
 
 if __name__ == "__main__":

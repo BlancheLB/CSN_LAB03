@@ -63,7 +63,9 @@ def c_t_after_percentage(ordering):
 
 
 def p_tests():
-    languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
+    languages = ['Basque', 'Greek',  'Turkish']
+
+    #languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
     languages_to_use = languages
     # load files
     adjacency_matrices, sequence_matrices = read_files(languages_to_use)
@@ -152,9 +154,9 @@ def p_tests():
 def main():
     # calc_lang_c_s()
 
-    for ordering in ['random', 'degree_asc', 'degree_desc', None]:
-        c_t_after_percentage(ordering)
-    # p_tests()
+   # for ordering in ['random', 'degree_asc', 'degree_desc', None]:
+       # c_t_after_percentage(ordering)
+    p_tests()
     # closeness_SM=[]
     # dict,arr=closeness_normal_graph(adjacency_matrices)
     # np.savetxt('closeness_arr.csv', arr, delimiter=',')
