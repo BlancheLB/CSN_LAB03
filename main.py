@@ -41,16 +41,19 @@ def calculate_p_value(original_graph, c_s_original):
 Test how correct the closeness centrality is after calculating for percentage of the nodes
 """
 def c_t_after_percentage(ordering):
-    languages = ['English']
+    languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
     languages_to_use = languages
     # load files
     adjacency_matrices, sequence_matrices = read_files(languages_to_use)
 
     # load into graphs
-    graph= nx.Graph(adjacency_matrices['English'])
+    graphs= {l: nx.Graph(adjacency_matrices[l]) for l in languages_to_use}
     print("📈 loaded file into graph")
 
-    closeness_centralities = graph_closeness_centrality(graph, node_order=ordering, fraction=1, milestones=True)
+    closeness_centralities = {lang: {} for lang in languages_to_use}
+    for l in languages:
+        closeness_centralities[l] = graph_closeness_centrality(graphs[l], node_order=ordering, fraction=0.05, milestones=True)
+        print("done with", l)
 
     if ordering == None:
         ordering = 'normal'
@@ -75,8 +78,8 @@ def p_tests():
     with open('output/language_c_s_full.json','r') as f:
         closeness_centralities = json.load(f)
 
-    T = 1
-    fraction = 0.001
+    T = 20
+    fraction = 0.05
     measurements_erdos = {l: {}  for l in languages_to_use}
     measurements_switching =  {l: {}  for l in languages_to_use}
 
@@ -88,6 +91,9 @@ def p_tests():
         for i in iters:
             erdos_renyi_graph = create_erdos_graph(nr_of_nodes, nr_of_edges)
             measurements_erdos[lang][i] = graph_closeness_centrality(erdos_renyi_graph, node_order=None, fraction=fraction)
+            with open('output/ptest_' +'erdos' +'.json', 'w') as f:
+                f.write(json.dumps(measurements_erdos))
+            print("renyi", lang, i, "/", T, "done")
         print("✅ done with erdos graphs of", lang)
 
         # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
@@ -103,8 +109,7 @@ def p_tests():
         #             print("✅ closeness centrality erdos-renyi nr", iter ,"calculated")
         #         except:
         #             print("❌ failed to calculate nr", iter)
-        with open('output/ptest_' +'erdos' +'.json', 'w') as f:
-            f.write(json.dumps(measurements_erdos))
+        
 
     
     # for switching model
@@ -117,6 +122,9 @@ def p_tests():
             switching_graph = graphs[lang].copy()
             apply_switching_model(switching_graph)
             measurements_switching[lang][i] = graph_closeness_centrality(switching_graph, node_order=None, fraction=fraction)
+            with open('output/ptest_' +'switched' +'.json', 'w') as f:
+                f.write(json.dumps(measurements_switching))
+            print("switching", lang, i, "/", T, "done")
         print("✅ done with switching graphs of", lang)
 
         # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
@@ -136,8 +144,7 @@ def p_tests():
         #             print("✅ closeness centrality switched nr", iter ,"calculated")
         #         except:
         #             print("❌ failed to calculate nr", iter)
-        with open('output/ptest_' +'switched' +'.json', 'w') as f:
-            f.write(json.dumps(measurements_switching))
+        
     print("💯 all done")
 
 
@@ -145,9 +152,9 @@ def p_tests():
 def main():
     # calc_lang_c_s()
 
-    # for ordering in ['random', 'degree_asc', 'degree_desc', None]:
-        # c_t_after_percentage(ordering)
-    p_tests()
+    for ordering in ['random', 'degree_asc', 'degree_desc', None]:
+        c_t_after_percentage(ordering)
+    # p_tests()
     # closeness_SM=[]
     # dict,arr=closeness_normal_graph(adjacency_matrices)
     # np.savetxt('closeness_arr.csv', arr, delimiter=',')

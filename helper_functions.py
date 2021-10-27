@@ -47,18 +47,6 @@ def read_files(languages):
     #print(adjacency_matrices["English"])
     return adjacency_matrices, sequences_matrices
          
-     
-"""
-not used anymore afaik
-"""
-# def closeness_normal_graph(dict):
-#     closeness_adjacency_matrices ={}
-#     tab=[]
-#     for lang in languages:
-#         G = nx.Graph(dict[lang]) 
-#         closeness_adjacency_matrices[lang]= nx.algorithms.centrality.closeness_centrality(G)
-#     print(closeness_adjacency_matrices)
-#     return closeness_adjacency_matrices,tab
 
 
 """
@@ -117,7 +105,7 @@ def graph_closeness_centrality(graph, node_order=None, fraction=1, smaller_than_
     N = graph.number_of_nodes()
 
     milestone_nr = 1
-    milestone_step = N/20
+    milestone_step = N/200
     milestone_hist = {}
 
     for n in nodes:
