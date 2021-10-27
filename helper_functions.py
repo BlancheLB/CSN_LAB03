@@ -6,7 +6,7 @@ import networkx as nx
 from networkx.algorithms.centrality import closeness
 import numpy as np
 import random
-
+import math
 
 
 
@@ -47,15 +47,17 @@ def read_files(languages):
     return adjacency_matrices, sequences_matrices
          
      
-
-def closeness_normal_graph(dict):
-    closeness_adjacency_matrices ={}
-    tab=[]
-    for lang in languages:
-        G = nx.Graph(dict[lang]) 
-        closeness_adjacency_matrices[lang]= nx.algorithms.centrality.closeness_centrality(G)
-    print(closeness_adjacency_matrices)
-    return closeness_adjacency_matrices,tab
+"""
+not used anymore afaik
+"""
+# def closeness_normal_graph(dict):
+#     closeness_adjacency_matrices ={}
+#     tab=[]
+#     for lang in languages:
+#         G = nx.Graph(dict[lang]) 
+#         closeness_adjacency_matrices[lang]= nx.algorithms.centrality.closeness_centrality(G)
+#     print(closeness_adjacency_matrices)
+#     return closeness_adjacency_matrices,tab
 
 
 """
@@ -80,64 +82,83 @@ def node_closeness_centrality(graph, node):
 Calculate the closeness centrality of the full graph
 Presenting a graph order is optional
 Giving what percentage of the nodes should be used for the calculation is optional
+Giving a smaller than value means the calculation stops as soons as it is sure the value is less than the given value
+With milestones set to true, it returns the progress of c_s over percnetage
 """
-def graph_closeness_centrality(graph, node_order=None, fraction=1):
+def graph_closeness_centrality(graph, node_order=None, fraction=1, smaller_than_value=None, milestones = False):
 
     # change order of nodes if requested
     nodes = None
     if node_order is None:
-        nodes = graph.nodes
+        nodes = list(graph.nodes)
     elif node_order == "random":
-        nodes = graph.nodes.copy()
+        nodes = list(graph.nodes).copy()
         random.shuffle(nodes)
     elif node_order == "degree_desc":
-        nodes = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=True)]
+        nodes = [n for (n,_) in sorted(graph.degree, key=lambda x: x[1], reverse=True)]
     elif node_order == "degree_asc":
-        nodes = [n for (n,_) in sorted(graphs['Basque'].degree, key=lambda x: x[1], reverse=False)]
+        nodes = [n for (n,_) in sorted(graph.degree, key=lambda x: x[1], reverse=False)]
     else:
         print("unknown noder_order, defaulting to normal order")
-        node_order = graph.nodes
-    
+        node_order = list(graph.nodes)
+    print("👏 done ordering")
     # calculate for only a fraction of the nodes
     if fraction < 1:
         assert fraction > 0
-        nodes = list(nodes)[0:int(len(nodes)*fraction)]
+        nodes = nodes[0:int(len(nodes)*fraction)]
 
     # calculate node closeness centrality for all selected nodes
     c_s_graph = {}
+    N = graph.number_of_nodes()
+
+    milestone_nr = 1
+    milestone_step = N/20
+    milestone_hist = {}
+
     for n in nodes:
         if n not in c_s_graph.keys(): # because it might have already been calculated
-            c_s_graph = c_s_graph | node_closeness_centrality(graph, n)
-    # calculate graph closeness centrality
-    return sum(c_s_graph.values())/len(c_s_graph)
+            c_s_node = node_closeness_centrality(graph, n)
+            c_s_graph = c_s_graph | c_s_node
+            count = len(c_s_graph)
+            # if it is already clear it wont be higher than the 'smaller_than_value', return
+            # in accordance with formula (6) in the asignment
+            if smaller_than_value != None and count % 1000 == 0:
+                if  smaller_than_value > (sum(c_s_graph.values())/N + 1 - count/N):
+                    print("Sure it is less than the value after ", count, "/", N, " words")
+                    break
+            if milestones == True:
+                if count > milestone_nr*milestone_step:
+                    milestone_hist[milestone_nr] = sum(c_s_graph.values())/len(c_s_graph)
+                    milestone_nr += 1
+    if not milestones:
+        # calculate graph closeness centrality
+        return sum(c_s_graph.values())/len(c_s_graph)
+    else:
+        milestone_hist[milestone_nr] = sum(c_s_graph.values())/len(c_s_graph)
+        return milestone_hist
 
+"""
+returns a erdos-renyi graph with the given number of nodes and edges
+"""
+def create_erdos_graph(nr_of_nodes: int, nr_of_edges: int):
+    n = nr_of_nodes
+    m = nr_of_edges
+    # probablity of edge
+    p = m/n
+    
+    # generate erdos-renyi graph
+    g = nx.generators.random_graphs.erdos_renyi_graph(n, p, directed=False)
+    return g
 
-def main():
-    languages = ['Arabic', 'Basque', 'Catalan', 'Chinese', 'Czech', 'English', 'Greek', 'Hungarian', 'Italian', 'Turkish']
-    languages_to_use = languages[1:2]
-    # load files
-    adjacency_matrices, sequence_matrices = read_files(languages_to_use)
-
-    # load into graphs
-    graphs = {}
-    for lang in languages_to_use:
-        graphs[lang] = nx.Graph(adjacency_matrices[lang])
-
-    # get the closeness centralities per node
-    closeness_centralities = {l: {} for l in languages_to_use}
-    for lang in languages_to_use:
-        c_s_lang = graph_closeness_centrality(graphs[lang], node_order=None, fraction=0.1)
-    print(c_s_lang)
-
-
-    # closeness_SM=[]
-    # dict,arr=closeness_normal_graph(adjacency_matrices)
-    # np.savetxt('closeness_arr.csv', arr, delimiter=',')
-    # np.savetxt('closeness_dict.csv', dict, delimiter=',')
-
-
-
-if __name__ == "__main__":
-    main()
-
+"""
+apply the switching model to the graph
+"""
+def apply_switching_model(graph, Q:int=None):
+    #calculate Q according to coupon collector's problem
+    if Q == None:
+        Q = math.log(graph.number_of_edges())
+    number_of_tries = graph.number_of_edges() * Q
+    # switch edges randomly
+    nx.double_edge_swap(graph,number_of_tries,max_tries=number_of_tries)
+    return graph
 
