@@ -41,13 +41,13 @@ def calculate_p_value(original_graph, c_s_original):
 Test how correct the closeness centrality is after calculating for percentage of the nodes
 """
 def c_t_after_percentage(ordering):
-    languages = ['Basque']
+    languages = ['English']
     languages_to_use = languages
     # load files
     adjacency_matrices, sequence_matrices = read_files(languages_to_use)
 
     # load into graphs
-    graph= nx.Graph(adjacency_matrices['Basque'])
+    graph= nx.Graph(adjacency_matrices['English'])
     print("📈 loaded file into graph")
 
     closeness_centralities = graph_closeness_centrality(graph, node_order=ordering, fraction=1, milestones=True)
